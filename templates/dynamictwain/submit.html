@@ -1,0 +1,41 @@
+<input id="submit_scan" type="submit" value="Continue">
+
+<script type="text/javascript" charset="utf-8">
+    $(document).ready(function(){
+
+        // Grab the underlying form
+        var form = $("#submit_scan").parent('form');
+
+        var ORIG_ACTION = form.attr('action');
+        var ORIG_METHOD = form.attr('method');
+        var UID = null;
+
+        form.submit(function(){
+
+            /* First, post the form */
+            var data = $(this).serialize();
+
+            $.ajax({
+                url: '/twain/form/?orig='+ORIG_ACTION,
+                method: ORIG_METHOD,
+                data: data,
+                dataType: 'json',
+                success: function(data){
+                    UID = data.uid;
+                    twain_instance.HTTPUploadAllThroughPostAsPDF(
+                        SERVER, 
+                        UPLOAD_PATH,
+                        "upload["+UID+"].pdf"
+                    );
+                    console.log("UPLOADED");
+
+                    window.location.href="/twain/redirect/?uid="+UID;
+                }
+
+            });
+
+            return false;
+        });
+
+    });
+</script>

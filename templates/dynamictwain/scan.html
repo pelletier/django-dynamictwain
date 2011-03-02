@@ -5,6 +5,15 @@
         <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
     </head>
     <body>
-        {% scan_widget "600x800" "False" %}
+        <h1>Example form</h2>
+        <form action="/foobar/" method="post" accept-charset="utf-8">
+            
+            <input type="text" name="some_name" value="">
+
+            {% scan_widget "600x800" "False" %}
+
+            {% submit_for_with_scan %}
+        
+        </form>
     </body>
 </html>

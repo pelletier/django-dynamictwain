@@ -4,6 +4,10 @@ from django.conf import settings
 register = template.Library()
 
 
+@register.inclusion_tag('dynamictwain/submit.html')
+def submit_for_with_scan():
+    return {}
+
 @register.inclusion_tag('dynamictwain/widget.html')
 def scan_widget(size="600x800", multiple=True):
     if multiple == "False":
