@@ -8,15 +8,15 @@
 
 
 
-    <p>
-        <input id="btnFirstImage" onClick="return btnFirstImage_onclick()" type="button" value=" |< ">&nbsp;
-        <input id="btnPreImage" onClick="return btnPreImage_onclick()" type="button" value=" < ">&nbsp;
+    <p id="multiple_box">
+        <input id="btnFirstImage" type="button" value=" |< ">
+        <input id="btnPreImage" type="button" value=" < ">
         <input type="text" name="CurrentImage" size="2" id="CurrentImage" readonly="readOnly"/>/
-        <input type="text" name="TotalImage" size="2" id="TotalImage" readonly="readOnly" value="0"/>&nbsp;
-        <input id="btnNextImage" onClick="return btnNextImage_onclick()" type="button" value=" &gt ">&nbsp;
-        <input id="btnLastImage" onClick="return btnLastImage_onclick()" type="button" value=" &gt| ">
-        <input id="btnRemoveCurrentImage" onClick="return btnRemoveCurrentImage_onclick()" type="button" value="Remove Current Image">
-        <input id="btnRemoveAllImages" onClick="return btnRemoveAllImages_onclick()" type="button" value="Remove All Images">
+        <input type="text" name="TotalImage" size="2" id="TotalImage" readonly="readOnly" value="0"/>
+        <input id="btnNextImage" type="button" value=" &gt ">
+        <input id="btnLastImage" type="button" value=" &gt| ">
+        <input id="btnRemoveCurrentImage" type="button" value="Remove Current Image">
+        <input id="btnRemoveAllImages" type="button" value="Remove All Images">
     </p>
 
 
@@ -29,9 +29,19 @@
 
 
 <script type="text/javascript" charset="utf-8">
+    /*
+     * Configuration
+     */
+
+    /* Settings provided by Django */
+    var RESOLUTION = {{default_resolution}};
+    var SERVER = "{{server}}";
+    var UPLOAD_PATH = "{{upload_path}}";
+    var MULTIPLE = {{multiple}};
+
+    /* URIs */
     var default_url = "{{base_url}}/DynamicWebTWAINPlugIn.exe";
     var firefox_url = "{{base_url}}/DynamicWebTwain.xpi";
-    <!--var firefox_url = "http://www.dynamsoft.com/demo/DWT5/DynamicWebTwain.xpi";-->
 
     var url = default_url;
 
@@ -62,9 +72,6 @@
         twain_instancespage="'+url+'">\
     </embed>';
 
-    /* Insert it */
-    document.getElementById("twain_wrapper").innerHTML = snippet;
-    
     /* Declare the callbacks otherwise they will trigger errors if they are not overrided */
     function OnPreTransferCallback(){}
     function OnPostTransferCallback(){}
@@ -81,129 +88,65 @@
     function OnImageAreaDeSelectedCallback(sImageIndex){}
 
     /* Create a variable witch contains a reference to the twain_instance. */
-    var twain_instance = document.getElementById('twain_instance');
+    var twain_instance = null;
 
-</script>
-
-
-
-
-<!-- Toolbox -->
-<script type="text/javascript" charset="utf-8">
-    var RESOLUTION = 150;
-    var SERVER = "mbp";
-    var UPLOAD_PATH = "/twain/upload/";
-
+    /*
+     * Utils
+     */
+    
     function CheckIfImagesInBuffer() {
         if (twain_instance.HowManyImagesInBuffer == 0) {
             alert("There is no image in buffer");
             return 0;
         }
     }
-    function CheckErrorString() {
-        alert(twain_instance.ErrorString);
-        //alert(twain_instance.HTTPPostResponseString);
-        return;
-    }
 
+    function UpdateCounters() {
+        $("#TotalImage").val(twain_instance.HowManyImagesInBuffer);
+        $("#CurrentImage").val(twain_instance.CurrentImageIndexInBuffer + 1);
+    }
 
     /*
-     * Initialize the default twain_instance (Max images in buffer, view mode
-     * and so on...
+     * Callbacks overrides
      */
-    function Pageonload() {
-        /* We check if the plugin is successfully loaded. */
-        if(twain_instance.ErrorCode != "0"){
-            if(ua.match(/firefox\/([\d.]+)/)){
-                document.getElementById("IsControlInstalled").style.display = "none";
-                document.getElementById("DynamicWebTWAIN").style.display="block";
-            }
-            else
-                if(ua.match(/chrome\/([\d.]+)/)||ua.match(/opera.([\d.]+)/)||ua.match(/version\/([\d.]+).*safari/)){
-                    document.getElementById("IsControlInstalled").style.display = "block";
-                    document.getElementById("DynamicWebTWAIN").style.display="none";
-                }
-        }
-        twain_instance.MaxImagesInBuffer = 100;
-        twain_instance.MouseShape = true;//HandShape
 
-        /* Probe the sources */
-        var i;
-        document.getElementById("source").options.length=0;
-        for(i=0;i< twain_instance.SourceCount;i++) {
-            document.getElementById("source").options.add(new Option(twain_instance.SourceNameItems(i),i));
-        }
-
-        twain_instance.SetViewMode(1,1);
+    /* Update the counters of buffered images after each transfert (=scan) */
+    function OnPostTransferCallback() {
+        UpdateCounters();
     }
 
-
-    //====================Preview Group Start====================//
-    function btnFirstImage_onclick() {
-        CheckIfImagesInBuffer();
-        twain_instance.CurrentImageIndexInBuffer = 0;
-        document.getElementById("TotalImage").value = twain_instance.HowManyImagesInBuffer;
-        document.getElementById("CurrentImage").value = twain_instance.CurrentImageIndexInBuffer+1;
-    }
-    function btnPreImage_onclick() {
-        CheckIfImagesInBuffer();
-        if (twain_instance.CurrentImageIndexInBuffer == 0)
-            return;
-        twain_instance.CurrentImageIndexInBuffer = twain_instance.CurrentImageIndexInBuffer - 1;
-        document.getElementById("TotalImage").value = twain_instance.HowManyImagesInBuffer;
-        document.getElementById("CurrentImage").value = twain_instance.CurrentImageIndexInBuffer+1;
-    }
-    function btnNextImage_onclick() {
-        CheckIfImagesInBuffer();
-        if (twain_instance.CurrentImageIndexInBuffer == twain_instance.HowManyImagesInBuffer - 1)
-           return;
-        twain_instance.CurrentImageIndexInBuffer = twain_instance.CurrentImageIndexInBuffer + 1;
-        document.getElementById("TotalImage").value = twain_instance.HowManyImagesInBuffer;
-        document.getElementById("CurrentImage").value = twain_instance.CurrentImageIndexInBuffer+1;
-    }
-    function btnLastImage_onclick() {
-        CheckIfImagesInBuffer();
-        twain_instance.CurrentImageIndexInBuffer = twain_instance.HowManyImagesInBuffer - 1;
-        document.getElementById("TotalImage").value = twain_instance.HowManyImagesInBuffer;
-        document.getElementById("CurrentImage").value = twain_instance.CurrentImageIndexInBuffer+1;
-    }
-    function btnRemoveCurrentImage_onclick() {
-        CheckIfImagesInBuffer();
-        twain_instance.RemoveImage(twain_instance.CurrentImageIndexInBuffer);
-        if (twain_instance.HowManyImagesInBuffer == 0){
-            document.getElementById("TotalImage").value = twain_instance.HowManyImagesInBuffer;
-            document.getElementById("CurrentImage").value = "";
-            return;
-        }
-        else{
-            document.getElementById("TotalImage").value = twain_instance.HowManyImagesInBuffer;
-            document.getElementById("CurrentImage").value = twain_instance.CurrentImageIndexInBuffer+1;
-        }
-    }
-    function btnRemoveAllImages_onclick() {
-        CheckIfImagesInBuffer();
-        twain_instance.RemoveAllImages();
-        document.getElementById("TotalImage").value = "0";
-      document.getElementById("CurrentImage").value = "";
-    }
-
-
+    /*
+     * Scan callback
+     */
 
     function btnScan_onclick() {
-        twain_instance.SelectSourceByIndex(document.all.source.selectedIndex);
-        twain_instance.CloseSource();   
+
+        /* We remove all images before each scan so we are sure the user only
+           scans one image */
+        if (MULTIPLE == false) { twain_instance.RemoveAllImages(); }
+
+        /* Select the input source*/
+        var index = $("#source").val();
+        twain_instance.SelectSourceByIndex(index);
+
+        /* Reset the source (flush its internal buffer) */
+        twain_instance.CloseSource();
         twain_instance.OpenSource();
 
+        /* Their UI is pure shit, we have talented desiners */
         twain_instance.IfShowUI = false;
         
+        /* Set the scan settings */
         twain_instance.PixelType='V14'; // V14=RGB V13=GRAY
         twain_instance.IfDisableSourceAfterAcquire = true;
         twain_instance.Resolution = RESOLUTION;
 
+        /* Check if the resolution is supported */
         if (twain_instance.Resolution != RESOLUTION) {
             alert("Fail to set resolution.\nCurrent source does not support the resolution you set.\nScan with default resolution.\n");
         }
 
+        /* Some advanced scan settings, see Wikipedia for more explanations */
         twain_instance.IfFeederEnabled = "ON";
         twain_instance.IfDuplexEnabled = "OFF";
 
@@ -211,10 +154,14 @@
         twain_instance.AcquireImage();
     }
 
+    /*
+     * Upload callback
+     */
+    
     function btnUpload_onclick(){
         CheckIfImagesInBuffer();
         
-        /* Upload as PDF */
+        /* Upload as PDF. Yeah, their API is pure bullshit */
         twain_instance.HTTPUploadAllThroughPostAsPDF(
                 SERVER, 
                 UPLOAD_PATH,
@@ -222,19 +169,120 @@
         );
 
         /* Check eventual errors */
-        CheckErrorString();
         if (twain_instance.ErrorCode == 0) {
             alert("Awesome! It worked.");
         }
     }
 
-    /* Update the counters of buffered images after each transfert (=scan) */
-    function OnPostTransferCallback() {
-        document.getElementById("TotalImage").value = twain_instance.HowManyImagesInBuffer;
-        document.getElementById("CurrentImage").value = twain_instance.CurrentImageIndexInBuffer+1;
+    /*
+     * Navigation callbacks
+     */
+
+    function btnFirstImage_onclick() {
+        CheckIfImagesInBuffer();
+        twain_instance.CurrentImageIndexInBuffer = 0;
+        UpdateCounters();
     }
 
-        
-    /* Load the init page script */
-    Pageonload();
+    function btnPreImage_onclick() {
+        CheckIfImagesInBuffer();
+        if (twain_instance.CurrentImageIndexInBuffer == 0) { return null; }
+        twain_instance.CurrentImageIndexInBuffer = twain_instance.CurrentImageIndexInBuffer - 1;
+        UpdateCounters();
+    }
+
+    function btnNextImage_onclick() {
+        CheckIfImagesInBuffer();
+        if (twain_instance.CurrentImageIndexInBuffer == twain_instance.HowManyImagesInBuffer - 1) { return null; };
+        twain_instance.CurrentImageIndexInBuffer = twain_instance.CurrentImageIndexInBuffer + 1;
+        UpdateCounters();
+    }
+
+    function btnLastImage_onclick() {
+        CheckIfImagesInBuffer();
+        twain_instance.CurrentImageIndexInBuffer = twain_instance.HowManyImagesInBuffer - 1;
+        UpdateCounters();
+    }
+
+    function btnRemoveCurrentImage_onclick() {
+        CheckIfImagesInBuffer();
+        twain_instance.RemoveImage(twain_instance.CurrentImageIndexInBuffer);
+        if (twain_instance.HowManyImagesInBuffer == 0) {
+            $("#TotalImage").val(twain_instance.HowManyImagesInBuffer);
+            $("#CurrentImage").val('');
+            return null;
+        }
+        else {
+            UpdateCounters();
+        }
+    }
+
+    function btnRemoveAllImages_onclick() {
+        CheckIfImagesInBuffer();
+        twain_instance.RemoveAllImages();
+        $("#TotalImage").val('0');
+        $("#CurrentImage").val('');
+    }
+
+    /*
+     * Initialization
+     */
+
+    $(document).ready(function(){
+        /* Insert the snippet in the DOM */
+        $("#twain_wrapper").html(snippet);
+
+        /* Fill the instance pointer */
+        twain_instance = $("#twain_instance");
+        twain_instance = document.getElementById('twain_instance');
+
+        /* Hide the navigation buttons if you want only one doc at time
+           and also bind callbacks. */
+        if (MULTIPLE == false) {
+            $("#multiple_box").hide();
+            $("#btnFirstImage").click(btnFirstImage_onclick);
+            $("#btnPreImage").click(btnPreImage_onclick);
+            $("#btnNextImage").click(btnNextImage_onclick);
+            $("#btnLastImage").click(btnLastImage_onclick);
+            $("#btnRemoveCurrentImage").click(btnRemoveCurrentImage_onclick);
+            $("#btnRemoveAllImages").click(btnRemoveAllImages_onclick);
+        }
+
+
+        /* We check if the module is correctly loaded */
+        if(twain_instance.ErrorCode != "0") {
+            var ua = navigator.userAgent;
+            if(ua.match(/firefox\/([\d.]+)/)) {
+                $("#IsControlInstalled").hide();
+                $("#DynamicWebTWAIN").show();
+            }
+            else {
+                if(ua.match(/chrome\/([\d.]+)/)||ua.match(/opera.([\d.]+)/)||ua.match(/version\/([\d.]+).*safari/)) {
+                    $("#IsControlInstalled").show();
+                    $("#DynamicWebTWAIN").hide();
+                }
+            }
+        }
+
+        /* Set a maximum number of images in the buffer */
+        twain_instance.MaxImagesInBuffer = 100;
+        /* Change the cursor of the mouse when it is on the control */
+        twain_instance.MouseShape = true; //HandShape
+
+        /* Remove existing sources */
+        $("#source option").each(function(){ $(this).remove(); });
+        for (var i=0; i < twain_instance.SourceCount; i++) {
+            $("#source").append("<option value='"+i+"'>"+twain_instance.SourceNameItems(i)+"</option>");
+        }
+
+        /* Select the first by default */
+        $("#source option").first().attr("selected", "selected");
+
+        /* Set the view mode (ratio, AFAIK) */
+        twain_instance.SetViewMode(1,1);
+
+        /* Bind the scan and upload buttons */
+        $("btnScan").click(btnScan_onclick);
+        $("btnUpload").click(btnUpload_onclick);
+    });
 </script>
