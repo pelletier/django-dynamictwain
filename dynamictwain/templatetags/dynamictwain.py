@@ -6,8 +6,12 @@ from django.core.urlresolvers import reverse
 register = template.Library()
 
 
+@register.inclusion_tag('dynamictwain/upload.html')
+def upload_scan():
+    return {}
+
 @register.inclusion_tag('dynamictwain/submit.html')
-def submit_for_with_scan():
+def submit_form_with_scan():
     return {}
 
 @register.inclusion_tag('dynamictwain/widget.html')
