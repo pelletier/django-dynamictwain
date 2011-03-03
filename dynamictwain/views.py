@@ -8,9 +8,6 @@ from django.core.urlresolvers import resolve
 from dynamictwain.models import TempFormData
 
 
-def scan(request):
-
-    return render('dynamictwain/scan.html', {}, RequestContext(request))
 
 
 @csrf_exempt
@@ -20,32 +17,16 @@ def upload(request):
 
 
     # RemoteFile
-
-    print "hello"
     f = request.FILES['RemoteFile']
-    print f
-    print "foo"
 
     # Extract the ID.
-
-    print f.name
-    print re.match('.*\[(.+)\].*', f.name).group(1)
     uid = re.match('.*\[(.+)\].*', f.name).group(1)
-    print "uid"
-    print uid
     real_filename = f.name.replace("[%s]" % uid, '')
-    print "real"
-    print real_filename
 
     # Grab the temp data
     tmp = TempFormData.objects.get(pk=uid)
     tmp.scan = f
     tmp.save()
-    
-    #destination = open('/tmp/%s' % f.name, 'wb+')
-    #for chunk in f.chunks():
-        #destination.write(chunk)
-    #destination.close()
     
     return HttpResponse()
 
@@ -71,10 +52,13 @@ def redirect(request):
     uid = request.GET['uid']
     data = TempFormData.objects.get(pk=uid)
 
-    print data.json_post
-    print data.json_get
 
-    #new_request = request.copy()
+    # We create a brand new request that we route internally to the
+    # developer's view.
+
+    # It is quite messy because Django requests are (supposed to be)
+    # immutable
+
     new_request = request
     
     post = new_request.POST.copy()

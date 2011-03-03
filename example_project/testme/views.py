@@ -2,7 +2,12 @@ from django.http import HttpResponse
 
 # Create your views here.
 def foo(request):
-    print "Welcome to the foo view"
-    print "\tVALUE %s" % request.GET['some_name']
-    print "\tFILES %s" % request.FILES
-    return HttpResponse('End.')
+    val = request.GET['some_name']
+    f = request.FILES
+    return HttpResponse('Received value: %s. With file: %s' % (val,f))
+
+
+
+def scan(request):
+    return render('scan.html', {}, RequestContext(request))
+

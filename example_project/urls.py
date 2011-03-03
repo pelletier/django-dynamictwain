@@ -8,10 +8,11 @@ urlpatterns = patterns('',
     # Example:
     # (r'^testproj/', include('testproj.foo.urls')),
 
-    (r'^twain/', include('dynamictwain.urls')),
+    (r'^twain/', include('dynamictwain.urls', 'dynamictwain')),
 
 
-    (r'^foobar/$', 'testme.views.foo'),
+    (r'^foobar/$', 'testme.views.foo'), # You receive your data here
+    (r'^$', 'testme.views.scan'), # You scan here
 
     # Uncomment the admin/doc line below to enable admin documentation:
     # (r'^admin/doc/', include('django.contrib.admindocs.urls')),

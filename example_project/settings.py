@@ -1,4 +1,4 @@
-# Django settings for testproj project.
+# Django settings for dynamictwain example project.
 from os import path
 
 ROOT_PATH = path.dirname(path.abspath(__file__))
@@ -78,10 +78,11 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
 )
 
-ROOT_URLCONF = 'testproj.urls'
+ROOT_URLCONF = 'example_project.urls'
 
 TEMPLATE_DIRS = (
-    path.join(ROOT_PATH, 'dynamictwain/templates'),
+    path.join(ROOT_PATH, 'templates'), # Your project templates
+    path.join(ROOT_PATH, 'dynamictwain/templates'), # DT templates
 )
 
 INSTALLED_APPS = (
@@ -90,23 +91,22 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.sites',
     'django.contrib.messages',
-    # Uncomment the next line to enable the admin:
-    # 'django.contrib.admin',
-    # Uncomment the next line to enable admin documentation:
-    # 'django.contrib.admindocs',
     'dynamictwain',
 )
 
-import mimetypes
 
-mimetypes.add_type("Application/x-xpinstall", ".xpi", True)
+# Send a correct mimetype for the XPI file in order to automatically install
+# the firefox plugin.
+
+if DEBUG:
+    import mimetypes
+    mimetypes.add_type("Application/x-xpinstall", ".xpi", True)
+
+# Dynamictwain-specific configuration
 
 DYNAMIC_TWAIN_MEDIA_ROOT = "/site_media/dynamic_twain/"
 DYNAMIC_TWAIN_DEFAULT_RESOLUTION = 150
 DYNAMIC_TWAIN_SERVER = "mbp"
 
-#from django.core.urlresolvers import reverse
-
-#DYNAMIC_TWAIN_UPLOAD_PATH = reverse('twain:scan')
-
-DYNAMIC_TWAIN_UPLOAD_PATH = "/twain/upload/"
+DYNAMIC_TWAIN_UPLOAD_PATH = "/twain/upload/" # We can't reverse() because the
+                                             # urls.py is not yet loaded.
